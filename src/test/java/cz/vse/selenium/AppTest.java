@@ -1,21 +1,21 @@
 package cz.vse.selenium;
 
+import cz.churchcrm.testframework.*;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,18 +26,18 @@ public class AppTest {
     private ChromeDriver driver;
 
     @Before
-    public void init() {
+    public void setup() {
         ChromeOptions cho = new ChromeOptions();
 
-        boolean runOnTravis = true;
-        if (runOnTravis) {
-            cho.addArguments("headless");
-        } else {
-            System.setProperty("webdriver.chrome.driver", "src/test/resources/drivers/chromedriver.exe");
-        }
+        System.setProperty("webdriver.chrome.driver", "src/test/resources/drivers/chromedriver.exe");
 //        ChromeDriverService service = new ChromeDriverService()
         driver = new ChromeDriver(cho);
-//        driver.manage().window().maximize();
+        driver.manage().window().maximize();
+    }
+
+    @Test
+    public void pokus() {
+
     }
 
     @After
@@ -47,11 +47,22 @@ public class AppTest {
 
     @Test
     public void google1_should_pass() {
+        // GIVEN
         driver.get("https://www.google.com/");
-        WebElement searchInput = driver.findElement(By.name("q"));
-        searchInput.sendKeys("travis");
-        searchInput.sendKeys(Keys.ENTER);
-        Assert.assertTrue(driver.getTitle().startsWith("travis - "));
+
+        // WHEN
+        WebElement searchInput = driver.findElementByName("q");
+        searchInput.sendKeys("koloběžka");
+//        searchInput.sendKeys(Keys.ENTER);
+        driver.findElementByName("btnK").click();
+
+        // THEN
+        Assert.assertTrue(driver.getTitle().startsWith("koloběžka - "));
+        Assert.assertTrue(driver.getCurrentUrl().startsWith("https://www.google.com/search?"));
+        Assert.assertTrue(driver.getCurrentUrl().contains("q=kolob%C4%9B%C5%BEka"));
+
+
+
         driver.quit();
     }
 
@@ -59,13 +70,22 @@ public class AppTest {
     public void alzaTest() throws InterruptedException {
         driver.get("https://www.alza.cz/");
         WebElement searchInput = driver.findElement(By.cssSelector("#edtSearch"));
-        searchInput.sendKeys("ubiquiti unifi");
+        searchInput.sendKeys("wifi");
 
-        WebDriverWait wait = new WebDriverWait(driver, 1);
-        wait.until(ExpectedConditions.presenceOfElementLocated( By.cssSelector("#ui-id-1>li.t7") ));
+        Thread.sleep(10000);
 
-        List<WebElement> searchItems = driver.findElements(By.cssSelector("#ui-id-1>li.t3"));
-        Assert.assertEquals(3, searchItems.size());
+        List<WebElement> list = driver.findElements(By.cssSelector("ul#ui-id-1"));
+
+//                Assert.assertTrue(firstItem.getText().equals("TP-LINK TL-WN722N"));
+
+//
+//        WebDriverWait wait = new WebDriverWait(driver, 10);
+//        wait.until(ExpectedConditions.presenceOfElementLocated( By.cssSelector("dsafasdfsdafasd") ));
+
+
+
+//        List<WebElement> searchItems = driver.findElements(By.cssSelector("#ui-id-1>li.t3"));
+//        Assert.assertEquals(3, searchItems.size());
         driver.quit();
     }
 
@@ -183,6 +203,7 @@ public class AppTest {
     }
 
 
+
     @Test
     public void given_userIsLoggedIn_when_userAddsNewDeposit_then_depositRecordIsShownInDepositTableGrid() throws InterruptedException {
         // GIVEN user is logged in
@@ -261,15 +282,72 @@ public class AppTest {
         Assert.assertFalse(deleteButton.isEnabled());
     }
 
+    @Test
     public void loadingExample() {
-        driver.get("http://digitalnizena.cz/priklad/loading1.html");
+        driver.get("http://digitalnizena.cz/priklad/loading3.html");
 
-        WebElement button = driver.findElement(By.cssSelector("#my-button"));
 
-        WebDriverWait wait = new WebDriverWait(driver, 12);
-        wait.until(ExpectedConditions.visibilityOf(button));
+        WebDriverWait wait = new WebDriverWait(driver, 4);
+        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("#my-button")));
+
+        WebElement spinner = driver.findElement(By.cssSelector("#spinner"));
+        spinner.click();
 
         // here in code, we are 100% sure, that button is visible
+    }
+
+    @Test
+    public void userPepaExistsInSystem_whenUserLogsWithValidPassword_thenUserIsLoggedIntoDashboard() {
+        // Given
+        driver.get("http://digitalnizena.cz/church/");
+
+        // when
+        WebElement usernameInput = driver.findElement(By.cssSelector("#UserBox"));
+        usernameInput.sendKeys("church");
+
+        WebElement passwordInput = driver.findElement(By.id("PasswordBox"));
+        passwordInput.sendKeys("church12345");
+
+        WebElement loginButton = driver.findElement(By.cssSelector(".btn-primary"));
+        loginButton.click();
+
+        // Then
+        Assert.assertTrue(driver.getCurrentUrl().equals("https://digitalnizena.cz/church/Menu.php"));
+        Assert.assertTrue(driver.getTitle().equals("ChurchCRM: Welcome to"));
+        Assert.assertTrue(driver.findElements(By.id("Login")).isEmpty());
+    }
+
+    @Test
+    public void loginWithInvalidCredentials_userStaysAtLoginPage() {
+
+
+    }
+
+
+    @Test
+    public void shouldAddDepositRecord() {
+        // Given
+        LoginPage loginPage = new LoginPage(driver);
+        loginPage.login();
+
+        DepositPage depositPage = new DepositPage(driver);
+        DepositListingPage depositsPage = depositPage.gotoAllDeposits();
+
+        // WHEN
+        String depositComment = "PG_" + UUID.randomUUID();
+        String date = "2020-05-25";
+        depositsPage.addDeposit(depositComment, date);
+
+        // THEN
+        Grid depositsGrid = new Grid(driver, "depositsTable_wrapper");
+        List<GridRow> rows = depositsGrid.search(depositComment);
+        rows.get(0).shouldContain(depositComment);
+        rows.get(0).shouldContain("datum");
+        rows.get(0).shouldContain("Bank");
+
+        depositsGrid.getRows(Column xxx);
+        Assert.assertTrue(rows.get(0).getDepositComment().equals(depositComment));
+
     }
 
 

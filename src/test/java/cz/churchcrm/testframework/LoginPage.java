@@ -3,7 +3,6 @@ package cz.churchcrm.testframework;
 import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 
 public class LoginPage extends Page {
 
@@ -20,6 +19,11 @@ public class LoginPage extends Page {
                 .click();
 
         return new DashboardPage(driver);
+    }
+
+    public DashboardPage login() {
+        driver.get("https://digitalnizena.cz/church/");
+        return this.login("church", "church12345");
     }
 
     public void shouldNotBeOpen() {
