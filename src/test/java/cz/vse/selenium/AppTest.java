@@ -1,6 +1,8 @@
 package cz.vse.selenium;
 
 import cz.churchcrm.testframework.*;
+import org.assertj.core.api.Assertions;
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,6 +20,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit test for simple App.
@@ -58,8 +62,12 @@ public class AppTest {
 
         // THEN
         Assert.assertTrue(driver.getTitle().startsWith("koloběžka - "));
+        assertThat(driver.getTitle()).startsWith("koloběžka - ");
+
         Assert.assertTrue(driver.getCurrentUrl().startsWith("https://www.google.com/search?"));
         Assert.assertTrue(driver.getCurrentUrl().contains("q=kolob%C4%9B%C5%BEka"));
+
+
 
 
 
@@ -72,21 +80,30 @@ public class AppTest {
         WebElement searchInput = driver.findElement(By.cssSelector("#edtSearch"));
         searchInput.sendKeys("wifi");
 
-        Thread.sleep(10000);
+        List<WebElement> items = driver.findElements(By.cssSelector("#ui-id-1 li.t3"));
+        Assert.assertTrue(items.get(0).getAttribute("title").equals("TP-LINK TL-WN722N"));
 
-        List<WebElement> list = driver.findElements(By.cssSelector("ul#ui-id-1"));
 
-//                Assert.assertTrue(firstItem.getText().equals("TP-LINK TL-WN722N"));
+        WebDriverWait wait = new WebDriverWait(driver, 10);
+        wait.until(new ExpectedCondition<Boolean>() {
 
-//
-//        WebDriverWait wait = new WebDriverWait(driver, 10);
-//        wait.until(ExpectedConditions.presenceOfElementLocated( By.cssSelector("dsafasdfsdafasd") ));
+            public Boolean apply(WebDriver input) {
+                List<WebElement> items = driver.findElements(By.cssSelector("#ui-id-1 li.t3"));    // idealne 3 kusy
+                if (!items.isEmpty() && items.get(0).getAttribute("title").equals("TP-LINK TL-WN722N")) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        });
+
+        wait.until(ExpectedConditions.attributeToBe(By.cssSelector("#ui-id-1 li.t3"), "title", "expected hodnota"));
 
 
 
 //        List<WebElement> searchItems = driver.findElements(By.cssSelector("#ui-id-1>li.t3"));
 //        Assert.assertEquals(3, searchItems.size());
-        driver.quit();
+       // driver.quit();
     }
 
     @Test
@@ -334,19 +351,31 @@ public class AppTest {
         DepositListingPage depositsPage = depositPage.gotoAllDeposits();
 
         // WHEN
+
         String depositComment = "PG_" + UUID.randomUUID();
         String date = "2020-05-25";
         depositsPage.addDeposit(depositComment, date);
 
         // THEN
-        Grid depositsGrid = new Grid(driver, "depositsTable_wrapper");
-        List<GridRow> rows = depositsGrid.search(depositComment);
-        rows.get(0).shouldContain(depositComment);
-        rows.get(0).shouldContain("datum");
-        rows.get(0).shouldContain("Bank");
+        Grid depositsGrid = new Grid(driver, "#depositsTable_wrapper");
+        depositsGrid.shouldContain(depositComment);
 
-        depositsGrid.getRows(Column xxx);
-        Assert.assertTrue(rows.get(0).getDepositComment().equals(depositComment));
+
+
+
+//
+//
+//
+//        //////////////////
+//        List<GridRow> rows = depositsGrid.search(depositComment);
+//        rows.get(0).shouldContain(depositComment);
+//        rows.get(0).shouldContain("datum");
+//        rows.get(0).shouldContain("Bank");
+//
+//        depositsGrid.getValues("selektorProSloupec");
+//
+////        depositsGrid.getRows(Column xxx);
+////        Assert.assertTrue(rows.get(0).getDepositComment().equals(depositComment));
 
     }
 
