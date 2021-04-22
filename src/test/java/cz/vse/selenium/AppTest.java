@@ -16,10 +16,13 @@ import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.yaml.snakeyaml.Yaml;
 
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,14 +43,163 @@ public class AppTest {
     }
 
     @Test
-    public void pokus() {
+    public void loginUsingValidCredentials() {
+        // GIVEN
+        // OrangeHRM demo login website is opened
+        driver.get("https://opensource-demo.orangehrmlive.com/");
+
+        // WHEN
+        // user enters valid username
+        WebElement userNameInput = driver.findElement(By.cssSelector("#txtUsername"));
+        userNameInput.sendKeys("Admin");
+        // user enters valid password
+        WebElement userPasswordInput = driver.findElement(By.cssSelector("#txtPassword"));
+        userPasswordInput.sendKeys("admin123");
+        // user click Login button
+        WebElement loginButton = driver.findElement(By.cssSelector("#btnLogin"));
+        loginButton.click();
+
+        //loginButton.isDisplayed()
+
+        // THEN
+
+        //Assert.assertEquals("OrangeHRM", driver.getTitle());
+
+
+        List<WebElement> list = driver.findElementsByCssSelector("#frmLogin");
+        //Assert.assertEquals(0, list.size());
+        Assert.assertTrue(list.isEmpty());
+    }
+
+
+    @Test
+    public void czcExamples() throws InterruptedException {
+        driver.get("https://www.czc.cz");
+
+        WebElement searchText = driver.findElementByCssSelector("#fulltext");
+        searchText.sendKeys("sluchatka");
+        Thread.sleep(4000);
+
+        List<WebElement> suggestionCategoryItems = driver.findElementsByCssSelector(".autocompleteui-group.category .autocompleteui-item span.ac__content");
+        Assert.assertTrue(suggestionCategoryItems.get(0).getText().startsWith("Sluchátka"));
+
+
+
+        WebDriverWait wait = new WebDriverWait(driver, 20);
+        //wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("xxxxxxxx")));
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#my-button")));
+
+        // tady pokracuje program
+
+//
+//
+//        WebElement searchButton = driver.findElementByCssSelector(".fulltext__btn");
+//        searchButton.click();
+
+
+
+//        List<WebElement> menuItemList = driver.findElementsByCssSelector(".main-menu-wrapper .main-menu__dep");
+//        menuItemList.get(1).click();
 
     }
+
+
+
+    @Test
+    public void case1findByID() {
+        loginUsingValidCredentials();
+
+        driver.get(" https://opensource-demo.orangehrmlive.com/index.php/recruitment/viewCandidates");
+
+        // by ID
+        // WebElement candidatesMenuItem = driver.findElementById("menu_recruitment_viewCandidates");
+
+        // by attribute's href value
+        // WebElement candidatesMenuItem = driver.findElementByCssSelector("a[href='/index.php/recruitment/viewCandidates']");
+
+        // by full xpath
+        // WebElement candidatesMenuItem = driver.findElementByXPath("/html/body/div[1]/div[2]/ul/li[5]/ul/li[1]/a");
+
+        // by xpath and id atrribute
+        // WebElement candidatesMenuItem = driver.findElementByXPath("//*[@id='menu_recruitment_viewCandidates']");
+
+        // by full path css selector
+        WebElement candidatesMenuItem = driver.findElement(By.cssSelector("html body div:nth-child(0) div:nth-child(1) ul li:nth-child(4) ul li:nth-child(0) a"));
+        // $("html body div:nth-of-type(1) div:nth-of-type(2) ul li:nth-of-type(5) ul li:nth-child(1)")
+
+
+        //WebElement candidatesMenuItem = driver.findElement(By.cssSelector("ul>li.selected a"));
+        // TODO apson 2 jeste
+
+        // WebElement candidatesMenuItem = driver.findElementByLinkText("Candidates");
+
+
+        WebElement candidateForm = driver.findElementById("frmSrchCandidates");
+        List<WebElement> buttonList = candidateForm.findElements(By.cssSelector("input[type=button]"));
+        buttonList.get(0).click();
+
+        driver.findElementsByCssSelector("form");
+        //driver.findElementsByCssSelector("input[name=firstName]");
+        driver.findElementsByName("firstName");
+
+//                 <input type="text" name="firstName" />
+        //driver.findElementByTagName("form")
+
+
+//        candidatesMenuItem.click();
+
+
+    }
+
+
+
+    @Test
+    public void shouldAddCandidate() {
+        // GIVEN
+        loginUsingValidCredentials();
+
+        // WHEN
+        // open Candidates page
+        // click add button
+        // fill in candidate attributes and click Save
+
+        driver.get("https://opensource-demo.orangehrmlive.com/index.php/recruitment/viewCandidates");
+        WebElement addButton = driver.findElementByCssSelector("#btnAdd");
+        addButton.click();
+        WebElement firstNameInput = driver.findElementByCssSelector("#addCandidate_firstName");
+        firstNameInput.sendKeys("Pavel");
+        WebElement lastNameInput = driver.findElementByCssSelector("#addCandidate_lastName");
+        lastNameInput.sendKeys("Gloss");
+        WebElement emailInput = driver.findElementByCssSelector("#addCandidate_email");
+        emailInput.sendKeys("pavel@pavel.pavel");
+        WebElement saveButton = driver.findElementByCssSelector("#btnSave");
+        saveButton.click();
+
+
+        // THEN
+        // no more on page
+        // on page https://opensource-demo.orangehrmlive.com/index.php/recruitment/addCandidate/id/XXXX
+        // input field with ID "addCandidate_firstName" is disabled
+
+        // TODO fragile, redo
+        Assert.assertNotEquals("https://opensource-demo.orangehrmlive.com/index.php/recruitment/addCandidate", driver.getCurrentUrl());
+
+        Assert.assertTrue(driver.getCurrentUrl().contains("/recruitment/addCandidate/id/"));
+
+        WebElement disabledNameInput = driver.findElementByCssSelector("#addCandidate_firstName");
+        Assert.assertFalse(disabledNameInput.isEnabled());
+    }
+
+
+
+    //https://opensource-demo.orangehrmlive.com/index.php/recruitment/viewCandidates
 
     @After
     public void tearDown() {
 //        driver.close();
     }
+
 
     @Test
     public void google1_should_pass() {
@@ -66,9 +218,6 @@ public class AppTest {
 
         Assert.assertTrue(driver.getCurrentUrl().startsWith("https://www.google.com/search?"));
         Assert.assertTrue(driver.getCurrentUrl().contains("q=kolob%C4%9B%C5%BEka"));
-
-
-
 
 
         driver.quit();
@@ -300,15 +449,38 @@ public class AppTest {
     }
 
     @Test
-    public void loadingExample() {
-        driver.get("http://digitalnizena.cz/priklad/loading3.html");
+    public void loadingExample() throws InterruptedException {
+        driver.get("http://digit107.wwwnlss4.a2hosted.com/priklad/loading3.html");
 
 
-        WebDriverWait wait = new WebDriverWait(driver, 4);
-        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("#my-button")));
 
-        WebElement spinner = driver.findElement(By.cssSelector("#spinner"));
-        spinner.click();
+        WebDriverWait wait = new WebDriverWait(driver, 5);
+//        wait.until( ExpectedConditions.elementToBeClickable(By.cssSelector("#my-button")) );
+
+
+        wait.until(new Function<WebDriver, Boolean>() {
+            @Override
+            public Boolean apply(WebDriver driver1) {
+                try {
+                    driver1.findElement(By.cssSelector("#my-button"));
+
+                } catch (Exception e) {
+                    System.out.println("element nenalezen...");
+                    return false;
+                }
+
+                System.out.println("element NALEZEN...");
+                return true;
+            }
+        });
+
+
+
+//        WebDriverWait wait = new WebDriverWait(driver, 10);
+//        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("#my-button")));
+
+//        WebElement spinner = driver.findElement(By.cssSelector("#spinner"));
+//        spinner.click();
 
         // here in code, we are 100% sure, that button is visible
     }
@@ -352,16 +524,16 @@ public class AppTest {
 
         // WHEN
 
-        String depositComment = "PG_" + UUID.randomUUID();
-        String date = "2020-05-25";
+        Grid depositsGrid = new Grid(driver, "#depositsTable_wrapper");
+        int rowCount = depositsGrid.getRowCount();
+
+        String depositComment = "PG123" ;  //+ UUID.randomUUID();
+        String date = "2021-04-08";
         depositsPage.addDeposit(depositComment, date);
 
         // THEN
-        Grid depositsGrid = new Grid(driver, "#depositsTable_wrapper");
-        depositsGrid.shouldContain(depositComment);
 
-
-
+        depositsGrid.shouldContain(depositComment, rowCount);
 
 //
 //

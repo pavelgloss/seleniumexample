@@ -5,6 +5,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
 public class LoginPage extends Page {
+    public static final String BASE_URL = "http://digit107.wwwnlss4.a2hosted.com/church2/";
 
     public LoginPage(WebDriver driver) {
         super(driver);
@@ -22,7 +23,7 @@ public class LoginPage extends Page {
     }
 
     public DashboardPage login() {
-        driver.get("https://digitalnizena.cz/church/");
+        driver.get(BASE_URL);
         return this.login("church", "church12345");
     }
 

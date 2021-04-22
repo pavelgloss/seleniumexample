@@ -10,7 +10,7 @@ public class DepositPage {
     }
 
     public DepositListingPage gotoAllDeposits() {
-        driver.get("https://digitalnizena.cz/church/FindDepositSlip.php");
+        driver.get(LoginPage.BASE_URL + "FindDepositSlip.php");
         return new DepositListingPage(driver);
     }
 }

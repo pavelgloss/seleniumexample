@@ -19,11 +19,12 @@ public class DepositListingPage {
         commentInput.sendKeys(depositComment);
 
         WebElement dateInput = driver.findElementByCssSelector("#depositDate");
+        dateInput.clear();
         dateInput.sendKeys(date);
 
         WebElement depositTypeSelect = driver.findElementByCssSelector("#depositType");
         Select depositType = new Select(depositTypeSelect);
-        depositType.selectByValue("Blabla");
+//        depositType.selectByValue("Blabla");
 
         WebElement addDepositButton = driver.findElementByCssSelector("#addNewDeposit");
         addDepositButton.click();
